@@ -29,7 +29,7 @@ class ReciclakiApp extends StatelessWidget {
 }
 
 // ----------------------------------------------------
-// TELA INICIAL
+// TELA INICIAL --
 // ----------------------------------------------------
 
 class TelaInicial extends StatefulWidget {
