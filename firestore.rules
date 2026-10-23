@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function conectado() { return request.auth != null; }
+    function texto(d, k, min, max) {
+      return d[k] is string && d[k].size() >= min && d[k].size() <= max;
+    }
+    function perfilValido(d) {
+      return d.keys().hasAll(['nome', 'email', 'telefone', 'nascimento', 'avatarId', 'criadoEm'])
+        && d.keys().hasOnly(['nome', 'email', 'telefone', 'nascimento', 'avatarId', 'criadoEm'])
+        && texto(d, 'nome', 3, 150) && texto(d, 'email', 3, 254)
+        && d.email == request.auth.token.email
+        && texto(d, 'telefone', 10, 11) && texto(d, 'nascimento', 0, 10)
+        && d.avatarId in ['luna', 'bia', 'flora', 'caio', 'pedro', 'leo']
+        && d.criadoEm is timestamp;
+    }
+    match /usuarios/{uid} {
+      allow read: if conectado() && request.auth.uid == uid;
+      allow create: if conectado() && request.auth.uid == uid
+        && perfilValido(request.resource.data) && request.resource.data.criadoEm == request.time;
+      allow update: if conectado() && request.auth.uid == uid && perfilValido(request.resource.data)
+        && request.resource.data.criadoEm == resource.data.criadoEm;
+      allow delete: if conectado() && request.auth.uid == uid;
+    }
+    function pontoValido(d) {
+      return d.keys().hasAll(['ownerUid', 'nome', 'cnpj', 'email', 'telefone', 'endereco', 'numero', 'bairro', 'horario', 'observacoes', 'materiais', 'latitude', 'longitude', 'criadoEm'])
+        && d.keys().hasOnly(['ownerUid', 'nome', 'cnpj', 'email', 'telefone', 'endereco', 'numero', 'bairro', 'horario', 'observacoes', 'materiais', 'latitude', 'longitude', 'criadoEm'])
+        && texto(d, 'ownerUid', 1, 128) && texto(d, 'nome', 3, 150)
+        && texto(d, 'cnpj', 14, 14) && d.cnpj.matches('^[0-9]{14}$')
+        && texto(d, 'email', 3, 254) && texto(d, 'telefone', 10, 11)
+        && texto(d, 'endereco', 3, 200) && texto(d, 'numero', 1, 20)
+        && texto(d, 'bairro', 2, 100) && texto(d, 'horario', 1, 500)
+        && texto(d, 'observacoes', 0, 1000)
+        && d.materiais is list && d.materiais.size() > 0 && d.materiais.size() <= 5
+        && d.materiais.hasOnly(['Papel', 'Plástico', 'Metal', 'Vidro', 'Eletrônicos'])
+        && d.latitude is number && d.latitude >= -90 && d.latitude <= 90
+        && d.longitude is number && d.longitude >= -180 && d.longitude <= 180
+        && d.criadoEm is timestamp;
+    }
+    match /pontos_coleta/{id} {
+      allow read: if conectado();
+      allow create: if conectado() && request.resource.data.ownerUid == request.auth.uid
+        && pontoValido(request.resource.data) && request.resource.data.criadoEm == request.time;
+      allow update: if conectado() && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.criadoEm == resource.data.criadoEm && pontoValido(request.resource.data);
+      allow delete: if conectado() && resource.data.ownerUid == request.auth.uid;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
