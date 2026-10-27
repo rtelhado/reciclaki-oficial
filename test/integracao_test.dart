@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reciclaki_integrado/data/quiz_perguntas.dart';
+import 'package:reciclaki_integrado/screens/quiz_page.dart';
 import 'package:reciclaki_integrado/screens/login_page.dart';
 import 'package:reciclaki_integrado/screens/cadastro_page.dart';
 import 'package:reciclaki_integrado/screens/ponto_coleta_page.dart';
@@ -8,6 +10,54 @@ import 'package:reciclaki_integrado/services/geocodificacao_service.dart';
 import 'package:reciclaki_integrado/widgets/avatar_reciclagem.dart';
 
 void main() {
+  test('Banco do quiz mantém as 121 perguntas originais válidas', () {
+    expect(bancoPerguntas, hasLength(121));
+    for (final pergunta in bancoPerguntas) {
+      expect(pergunta.opcoes, hasLength(4));
+      expect(pergunta.opcoes, contains(pergunta.correta));
+    }
+  });
+
+  testWidgets('Quiz apresenta dez perguntas e mostra o resultado final', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: QuizPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pergunta 1 de 10'), findsOneWidget);
+
+    for (
+      var pergunta = 1;
+      pergunta <= QuizPage.quantidadePerguntas;
+      pergunta++
+    ) {
+      final opcao = find.byType(OutlinedButton).first;
+      await tester.ensureVisible(opcao);
+      await tester.tap(opcao);
+      await tester.pumpAndSettle();
+
+      final botao = pergunta == QuizPage.quantidadePerguntas
+          ? find.text('Ver resultado')
+          : find.text('Próxima pergunta');
+      expect(botao, findsOneWidget);
+      await tester.ensureVisible(botao);
+      await tester.tap(botao);
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('Fim do quiz!'), findsOneWidget);
+    expect(find.text('Jogar novamente'), findsOneWidget);
+    expect(find.text('Voltar ao início'), findsOneWidget);
+    await tester.tap(find.text('Jogar novamente'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pergunta 1 de 10'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('Quiz possui rota própria no menu do aplicativo', () {
+    expect(Rotas.quiz, '/quiz');
+  });
+
   testWidgets('Login abre cadastro e permite voltar', (tester) async {
     tester.view.physicalSize = const Size(1200, 1400);
     tester.view.devicePixelRatio = 1;

@@ -291,7 +291,7 @@ class MenuReciclaki extends StatelessWidget {
   }
 
   void _abrirPagina(BuildContext context, _OpcaoMenu opcao) {
-    final destinos = [Rotas.mapa, Rotas.pontos, Rotas.videos, Rotas.videos];
+    final destinos = [Rotas.mapa, Rotas.pontos, Rotas.videos, Rotas.quiz];
     Navigator.pushNamed(context, destinos[_opcoes.indexOf(opcao)]);
   }
 }

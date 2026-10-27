@@ -10,6 +10,7 @@ import 'screens/inicio_page.dart';
 import 'screens/ponto_coleta_page.dart';
 import 'screens/mapa_firestore_page.dart';
 import 'screens/videos_page.dart';
+import 'screens/quiz_page.dart';
 import 'screens/perfil_page.dart';
 import 'widgets/acesso_protegido.dart';
 
@@ -68,6 +69,7 @@ class ReciclaKiApp extends StatelessWidget {
       Rotas.pontos: (_) => const AcessoProtegido(child: CadastroPontoColeta()),
       Rotas.mapa: (_) => const AcessoProtegido(child: TelaMapaColeta()),
       Rotas.videos: (_) => const AcessoProtegido(child: VideosPage()),
+      Rotas.quiz: (_) => const AcessoProtegido(child: QuizPage()),
       Rotas.perfil: (_) => const AcessoProtegido(child: PerfilPage()),
     },
   );
